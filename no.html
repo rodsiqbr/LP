@@ -1,0 +1,69 @@
+
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="description" content="Santander-NAO">
+		<script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.6.0.min.js"></script>
+		<title>Santander</title>
+	</head>
+	<body>
+		<header>
+			<h1><a style="color: red">Santander</a></h1>
+		</header>
+		<article>
+			<p><span class="droppable" id="customer-name">NOME</span>, para sua segurança, seu cartão final <span class="droppable" id="cc-4digit">CC04</span> foi bloqueado para uso na internet.</p>
+			<p>Confira sua fatura no app Santander ou Way, selecione as transações que não reconhece para solicitar o estorno ou ligue para a central de atendimento.</p>
+		</article>
+		<hr>
+		<footer>
+			<div style="font-family:Roboto, Arial, Helvetica, sans-serif;font-size:10px;font-style:normal;font-weight:300;line-height:normal;text-align:left;text-decoration:none;color:#000000;">
+			<p>Esfera - Uma empresa Santander</p><p>Esfera Fidelidade S.A. - CNPJ:31.595.265/0001-03</p><p>Avenida Presidente Juscelino Kubitschek, São Paulo, SP, 04543-011 Brasil</p></div>
+		</footer>
+		<script>
+			$(document).ready(function() {
+			
+				$.urlParam = function (query) {
+					var results = new RegExp('[\?&]' + query + '=([^&#]*)').exec(window.location.search);
+					return (results !== null) ? results[1] || 0 : false;
+				}
+				var indiv_id = $.urlParam('indiv_id');
+				var customer_name = $.urlParam('nome');
+				var cc_4digit = $.urlParam('cc4');
+						
+				$('#customer-name').text(customer_name);
+				$('#cc-4digit').text(cc_4digit);				
+				
+				var customer = {
+					"entrySourceCode": "ES-00000102",
+					"entrySourceType": "REST",
+					"timestamp": 0,
+					"data": [
+						{
+							"CID": indiv_id,
+							"pushid": "",
+							"RespostaCli": "Y",
+							"TrsAutorizada": "N"
+						}
+					]
+				};
+				
+				$.when(
+					$.ajax({
+						type: "POST",
+						headers: {"Content-Type": "application/json"},
+						url: "https://unicasales-emea.hcltechsw.com/journey/api/thirdpartylogin",
+						data: '{ "clientId": "4Hh1WXgpf_wujkO7vUiMmdK_2BykZXWK", "clientSecret": "oS_B7Ve9zr_t.e0cwmuUEHDH59A2XsPQ" }'
+				    })).done(function(token){
+						$.ajax({
+							type: "POST",
+							headers: {"Content-Type": "application/json", "Authorization": token.tokenId},
+							url: "https://unicasales-emea.hcltechsw.com/journey/api/entrysources/rest/data",
+							data: JSON.stringify(customer)
+							//data: '{"entrySourceCode": "ES-00000102", "entrySourceType": "REST", "timestamp": 0, "data": //[{"CID":indiv_id,"Nome":"Fernando","email":"fernando.adachi@unica.com","mobile":"+5511981861155","pushid":"1001","CCMode":"chip","Estabelecimento":"Offner","CB1":"1234","DataTrs":"20220420//","HoraTrs":"0800","ValorTrs":"99.99","RespostaCli":"Y","TrsAutorizada":"Y"}]}'
+						})
+					});
+			});
+		</script>
+	</body>
+</html>
